@@ -1,8 +1,7 @@
-#element.py
-from _ast import alias
+# element.py
 
 
-class Element():
+class Element:
 
     def __init__(self, orientation, position, id_model, scale, alpha):
         self.__orientation = orientation
@@ -11,8 +10,7 @@ class Element():
         self.__scale = scale
         self.__alpha = alpha
 
-
-    #GETTERS AND SETTERS
+    # GETTERS AND SETTERS
     def get_orientation(self):
         return self.__orientation
 
@@ -63,10 +61,10 @@ class Element():
 
         x_scale1, y_scale1 = self.get_scale()
         x_scale2, y_scale2 = element.get_scale()
-        x[0][1] = x[0][0] + x_scale1*0.9
-        x[1][1] = x[1][0] + x_scale2*0.9
-        y[0][1] = y[0][0] + y_scale1*0.9
-        y[1][1] = y[1][0] + y_scale2*0.9
+        x[0][1] = x[0][0] + x_scale1 * 0.9
+        x[1][1] = x[1][0] + x_scale2 * 0.9
+        y[0][1] = y[0][0] + y_scale1 * 0.9
+        y[1][1] = y[1][0] + y_scale2 * 0.9
 
         if x[0][0] >= x[1][1] or x[0][1] <= x[1][0] or y[0][0] >= y[1][1] or y[0][1] <= y[1][0]:
             return False

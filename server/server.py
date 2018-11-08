@@ -1,7 +1,6 @@
 #server.py
 
 import Pyro4
-import pygame
 
 @Pyro4.expose
 @Pyro4.behavior(instance_mode="single")
