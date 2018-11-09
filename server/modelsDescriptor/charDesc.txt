@@ -1,0 +1,6 @@
+collumns 5
+id_bomb_model	speed	n_bomb_max	power_bomb_add	path
+1		30	1		0		img/char1.png
+
+
+
