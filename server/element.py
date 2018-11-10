@@ -49,7 +49,7 @@ class Element:
         self.set_position(newPosition)
 
     # PRIVATE METHODS
-    def check_colidion(self, element):
+    def check_collision(self, element):
         x = [[0, 0], [0, 0]]
         y = [[0, 0], [0, 0]]
         x[0][0], y[0][0] = self.get_position()

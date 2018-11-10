@@ -1,6 +1,6 @@
 # bomb.py
 
-from server.element import Element
+from element import Element
 
 
 class Bomb(Element):

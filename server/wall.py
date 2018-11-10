@@ -1,5 +1,5 @@
 # wall.py
-from server.element import Element
+from element import Element
 
 
 class Wall(Element):

@@ -1,5 +1,5 @@
 # char.py
-from server.element import Element
+from element import Element
 import math
 
 

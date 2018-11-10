@@ -1,1 +1,3 @@
+columns: 3
 power	timer	path
+1	3	img/bomb1.png

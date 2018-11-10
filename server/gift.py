@@ -1,5 +1,5 @@
 # gift.py
-from server.element import Element
+from element import Element
 
 
 class Gift(Element):
