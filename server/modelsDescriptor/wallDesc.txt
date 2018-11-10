@@ -1,1 +1,3 @@
+collumns 1
 path
+img/wall1.png
