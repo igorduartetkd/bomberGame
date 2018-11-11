@@ -8,10 +8,12 @@ from char import Char
 from bomb import Bomb
 from gift import Gift
 from wall import Wall
+from fire import Fire
 from modelChar import ModelChar
 from modelWall import ModelWall
 from modelBomb import ModelBomb
 from modelGift import ModelGift
+from modelFire import ModelFire
 
 
 @Pyro4.expose
@@ -24,14 +26,17 @@ class Server(object):
         self.__n_players = 0
         self.__model_char = self.__read_model_char()
         self.__model_bomb = self.__read_model_bomb()
-        self.__model_gift = {}
+        self.__model_gift = self.__read_model_gift()
         self.__model_wall = self.__read_model_wall()
+        self.__model_fire = self.__read_model_fire()
 
         self.__chars = {}
         self.__bombs = {}
         self.__gifts = {}
         self.__walls = self.__create_random_walls()
         self.__static_walls = []
+        self.__fires = {}
+
         self.__put_static_walls()
 
     # PRIVATE METHODS
@@ -94,6 +99,20 @@ class Server(object):
                 model_walls_return[model_wall.get_id()] = model_wall
         return model_walls_return
 
+    def __read_model_fire(self):
+        model_fires_return = {}
+        file_descriptor = open("modelsDescriptor/fireDesc.txt", 'r')
+        lines = file_descriptor.readlines()
+        file_descriptor.close()
+        columns = int(lines.pop(0).split()[1])
+        lines.pop(0)
+        for line in lines:
+            if len(line.split()) == columns:
+                path = line.split()[0]
+                model_fire = ModelFire(path)
+                model_fires_return[model_fire.get_id()] = model_fire
+        return model_fires_return
+
     def __create_random_gift(self):
         id_model_gift = randint(0, len(self.__model_gift))
         return id_model_gift
@@ -109,7 +128,7 @@ class Server(object):
         y = 1
         n = 0
         n_walls = 25
-        model_wall = next(iter(self.__model_wall.values()))
+        model_wall = self.__model_wall[2]
         while True:
             x = randint(1, 13)
             y = randint(1, 7)
@@ -130,15 +149,14 @@ class Server(object):
                 wall = Wall(0, [x*Server.wall_factor, y*Server.wall_factor], model_static_wall.get_id(), [55, 55], 255, 0)
                 self.__static_walls.append(wall)
 
-    def __process_bomb_collision(self, bomb):
+    def __process_fire_collision(self, fire):
         id_chars_kill = []
         for char in self.__chars.values():
-            if char.get_id() != bomb.get_id_char():
-                if char.check_collision(bomb):
-                    id_chars_kill.append(char.get_id())
+            if char.check_collision(fire):
+                id_chars_kill.append(char.get_id())
 
         for id_char in id_chars_kill:
-            del self.__chars[id_char]
+            self.exit(id_char)
 
     def __detect_char_wall_collision(self, char, direction):
         #detecting in static walls
@@ -150,12 +168,20 @@ class Server(object):
         for wall in self.__walls.values():
             if char.check_collision_walk(wall, direction):
                 return True
+
+        # detecting collision with bombs:
+        for bomb in self.__bombs.values():
+            if char.get_id() == bomb.get_id_char():
+                return False
+            if char.check_collision_walk(bomb, direction):
+                return True
         return False
 
     def __check_bombs(self):
         id_bombs_exploded = list()
         for bomb in self.__bombs.values():
             if bomb.exploded():
+                self.__generate_fire(bomb)
                 id_bombs_exploded.append(bomb.get_id())
 
         for id_bomb in id_bombs_exploded:
@@ -164,6 +190,22 @@ class Server(object):
             char.bomb_exploded()
             del self.__bombs[id_bomb]
 
+    def __check_fires(self):
+        id_fires_to_remove = list()
+        for fire in self.__fires.values():
+            if fire.is_ended():
+                id_fires_to_remove.append(fire.get_id())
+
+        for id_fire in id_fires_to_remove:
+            del self.__fires[id_fire]
+
+    def __generate_fire(self, bomb):
+        model_fire_base = self.__model_fire[1]
+        model_fire_center = self.__model_fire[2]
+        model_fire_end = self.__model_fire[3]
+        fire = Fire(bomb.get_orientation(), bomb.get_position(), model_fire_base.get_id(),
+                    [20, 20], 100, 30)
+        self.__fires[fire.get_id()] = fire
 
     # PUBLIC METHODS
     def get_model_chars(self):
@@ -188,6 +230,12 @@ class Server(object):
         list_model_return = list()
         for model_wall in self.__model_wall.values():
             list_model_return.append([model_wall.get_id(), model_wall.get_path()])
+        return list_model_return
+
+    def get_model_fires(self):
+        list_model_return = list()
+        for model_fire in self.__model_fire.values():
+            list_model_return.append([model_fire.get_id(), model_fire.get_path()])
         return list_model_return
 
     def get_n_players(self):
@@ -265,12 +313,22 @@ class Server(object):
             list_return.append([gift.get_id_model(), gift.get_position(), gift.get_scale(), gift.get_alpha()])
         return list_return
 
+    def list_fires(self):
+        list_return = list()
+        for fire in self.__fires.values():
+            list_return.append([fire.get_id_model(), fire.get_orientation(), fire.get_position(), fire.get_scale(),
+                                fire.get_alpha()])
+        return list_return
+
     def clock(self):
         for bomb in self.__bombs.values():
-            self.__process_bomb_collision(bomb)
             bomb.bomb_clock()
         self.__check_bombs()
-        # TODO IMPLEMENTAR MOVEIMENTO DO FIRE
+
+        for fire in self.__fires.values():
+            self.__process_fire_collision(fire)
+            fire.clock()
+        self.__check_fires()
 
     def exit(self, id_char):
         if id_char in self.__chars:

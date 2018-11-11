@@ -43,9 +43,16 @@ class Bomb(Element):
     def __set_current_timer(self, current_timer):
         self.__current_timer = current_timer
 
+    def __bomb_beat(self):
+        if self.__get_current_timer() % 2:
+            factor = (-1) ** int(self.__get_current_timer() / 20)
+            x, y = self.get_scale()
+            self.set_scale([x + factor, y + factor])
+
     # PUBLIC METHODS
     def bomb_clock(self):
         self.__set_current_timer(self.__get_current_timer() + 1)
+        self.__bomb_beat()
 
     def exploded(self):
         if self.__get_current_timer() >= self.get_timer():

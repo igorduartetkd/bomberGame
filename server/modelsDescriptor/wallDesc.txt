@@ -1,3 +1,4 @@
 collumns 1
 path
 img/wall1.png
+img/wall2.png
