@@ -132,7 +132,7 @@ class Server(object):
 
     def __process_bomb_collision(self, bomb):
         id_chars_kill = []
-        for char in self.__chars:
+        for char in self.__chars.values():
             if char.get_id() != bomb.get_id_char():
                 if char.check_collision(bomb):
                     id_chars_kill.append(char.get_id())
@@ -154,11 +154,14 @@ class Server(object):
 
     def __check_bombs(self):
         id_bombs_exploded = list()
-        for bomb in self.__bombs:
+        for bomb in self.__bombs.values():
             if bomb.exploded():
                 id_bombs_exploded.append(bomb.get_id())
 
         for id_bomb in id_bombs_exploded:
+            bomb = self.__bombs[id_bomb]
+            char = self.__chars[bomb.get_id_char()]
+            char.bomb_exploded()
             del self.__bombs[id_bomb]
 
 
@@ -218,8 +221,11 @@ class Server(object):
         if id_char in self.__chars:
             char = self.__chars[id_char]
             if char.put_bomb():
+                x, y = char.get_position()
+                x = round(x / Server.wall_factor) * Server.wall_factor
+                y = round(y / Server.wall_factor) * Server.wall_factor
                 model_bomb = self.__model_bomb[char.get_id_bomb_model()]
-                bomb = Bomb(char.get_orientation(), char.get_position(), model_bomb.get_id, [53, 53], 255,
+                bomb = Bomb(char.get_orientation(), [x, y], model_bomb.get_id(), [53, 53], 255,
                             id_char, model_bomb.get_s_power(), model_bomb.get_s_timer())
                 self.__bombs[bomb.get_id()] = bomb
 
@@ -228,21 +234,6 @@ class Server(object):
             char = self.__chars[id_char]
             if not self.__detect_char_wall_collision(char, direction):
                 char.move(direction)
-            '''
-            if self.__detect_char_wall_collision(char):
-                if direction == 0:
-                    direction = 180
-                elif direction == 180:
-                    direction = 0
-                elif direction == 90:
-                    direction = 270
-                elif direction == 270:
-                    direction = 90
-
-                char.move(direction)
-            else:
-                char.move(direction)
-            '''
 
     def list_bombs(self):
         list_return = list()
@@ -275,7 +266,7 @@ class Server(object):
         return list_return
 
     def clock(self):
-        for bomb in self.__bombs:
+        for bomb in self.__bombs.values():
             self.__process_bomb_collision(bomb)
             bomb.bomb_clock()
         self.__check_bombs()

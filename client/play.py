@@ -61,10 +61,13 @@ list_walls = list()
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
+            server.exit(id_my_char)
             pygame.quit()
             exit()
+    if event.type == pygame.KEYDOWN:
+        if event.key == pygame.K_SPACE:
+            server.put_bomb(id_my_char)
     key = pygame.key.get_pressed()
-
     if key[pygame.K_UP]:
         server.move(id_my_char, 270)
     elif key[pygame.K_DOWN]:
@@ -92,6 +95,20 @@ while True:
         rect = img.get_rect()
         rect = rect.move(position)
         img = pygame.transform.rotate(img, orientation)
+        screem.blit(img, rect)
+
+    for [model_bomb, position, scale, alpha] in list_bombs:
+        img = dic_img_model_bomb[model_bomb]
+        img = pygame.transform.scale(img, scale)
+        rect = img.get_rect()
+        rect = rect.move(position)
+        screem.blit(img, rect)
+
+    for [model_gift, position, scale, alpha] in list_gifts:
+        img = dic_img_model_gift[model_gift]
+        img = pygame.transform.scale(img, scale)
+        rect = img.get_rect()
+        rect = rect.move(position)
         screem.blit(img, rect)
 
     for [model_wall, position, scale, alpha] in list_walls:
