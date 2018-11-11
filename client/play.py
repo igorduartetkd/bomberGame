@@ -129,7 +129,7 @@ while True:
         screem.blit(img, rect)
 
     for [model_wall, orientation, position, scale, alpha] in list_fires:
-        img = dic_img_model_wall[model_wall]
+        img = dic_img_model_fire[model_wall]
         img = pygame.transform.scale(img, scale)
         rect = img.get_rect()
         rect = rect.move(position)

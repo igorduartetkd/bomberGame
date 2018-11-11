@@ -152,7 +152,7 @@ class Server(object):
     def __process_fire_collision(self, fire):
         id_chars_kill = []
         for char in self.__chars.values():
-            if char.check_collision(fire):
+            if fire.check_collision(char):
                 id_chars_kill.append(char.get_id())
 
         for id_char in id_chars_kill:
@@ -201,11 +201,48 @@ class Server(object):
 
     def __generate_fire(self, bomb):
         model_fire_base = self.__model_fire[1]
-        model_fire_center = self.__model_fire[2]
+        model_fire_middle = self.__model_fire[2]
         model_fire_end = self.__model_fire[3]
-        fire = Fire(bomb.get_orientation(), bomb.get_position(), model_fire_base.get_id(),
-                    [20, 20], 100, 30)
-        self.__fires[fire.get_id()] = fire
+        x, y = bomb.get_position()
+
+        if x % 2:
+            fire = Fire(bomb.get_orientation(), [x, y], model_fire_base.get_id(),
+                        [54, 54], 100, 30)
+            self.__fires[fire.get_id()] = fire
+        '''
+        if bomb.get_power() == 1:
+            fire = Fire(0, [x+15+Server.wall_factor, y+15], model_fire_end.get_id(),
+                        [54, 54], 100, 30)
+            self.__fires[fire.get_id()] = fire
+            fire = Fire(90, [x+15 , y+15-Server.wall_factor], model_fire_end.get_id(),
+                        [54, 54], 100, 30)
+            self.__fires[fire.get_id()] = fire
+            fire = Fire(270, [x+15, y+15+Server.wall_factor], model_fire_end.get_id(),
+                        [54, 54], 100, 30)
+            self.__fires[fire.get_id()] = fire
+            fire = Fire(180, [x + 15 - Server.wall_factor, y + 15], model_fire_end.get_id(),
+                        [54, 54], 100, 30)
+            self.__fires[fire.get_id()] = fire
+        '''
+        for n in range(1, bomb.get_power()+1, 1):
+            if n == bomb.get_power():
+                model = model_fire_end
+            else:
+                model = model_fire_middle
+            if x % 2:
+                fire = Fire(270, [x, y  + Server.wall_factor * n], model.get_id(),
+                            [54, 54], 100, 30)
+                self.__fires[fire.get_id()] = fire
+                fire = Fire(90, [x , y  - Server.wall_factor * n], model.get_id(),
+                            [54, 54], 100, 30)
+                self.__fires[fire.get_id()] = fire
+            if y % 2:
+                fire = Fire(0, [x  + Server.wall_factor * n, y ], model.get_id(),
+                            [54, 54], 100, 30)
+                self.__fires[fire.get_id()] = fire
+                fire = Fire(180, [x  - Server.wall_factor * n, y ], model.get_id(),
+                            [54, 54], 100, 30)
+                self.__fires[fire.get_id()] = fire
 
     # PUBLIC METHODS
     def get_model_chars(self):
@@ -346,8 +383,8 @@ def main():
     t = threading.Thread(target=daemon.requestLoop)
     t.start()
     while True:
-        if server.get_n_players():
-            server.clock()
+       # if server.get_n_players():
+        server.clock()
 
         clock.tick(30)  # 35 FPS
 

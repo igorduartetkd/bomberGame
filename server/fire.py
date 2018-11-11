@@ -1,5 +1,6 @@
 # fire.py
 
+
 from element import Element
 
 
@@ -30,10 +31,12 @@ class Fire(Element):
         self.__current_timer = current_timer
 
     def __fire_beat(self):
-        # if self.__get_current_timer() % 2:
-        factor = (-1) ** int(self.__get_current_timer() / (self.__time_life/2))
-        x, y = self.get_scale()
-        self.set_scale([x + factor, y + factor])
+        if self.__get_current_timer() % 2:
+            factor = (-1) ** int(self.__get_current_timer() / (self.__time_life/2))
+            x, y = self.get_scale()
+            self.set_scale([x + factor, y + factor])
+            alpha = self.get_alpha()
+            self.set_alpha(alpha + factor*10)
 
     # PUBLIC METHODS
     def clock(self):
@@ -45,4 +48,23 @@ class Fire(Element):
             return True
         return False
 
+    def check_collision(self, element):
+        xs, ys = self.get_position()
+        xs = round(xs / 53) * 53 + 10
+        ys = round(ys / 53) * 53 + 10
+        x = [[0, 0], [0, 0]]
+        y = [[0, 0], [0, 0]]
+        x[0][0], y[0][0] = [xs, ys]
+        x[1][0], y[1][0] = element.get_position()
 
+        x_scale1, y_scale1 = self.get_scale()
+        x_scale2, y_scale2 = element.get_scale()
+        x[0][1] = x[0][0] + x_scale1 -20
+        x[1][1] = x[1][0] + x_scale2
+        y[0][1] = y[0][0] + y_scale1 -20
+        y[1][1] = y[1][0] + y_scale2
+
+        if x[0][0] >= x[1][1] or x[0][1] <= x[1][0] or y[0][0] >= y[1][1] or y[0][1] <= y[1][0]:
+            return False
+
+        return True
