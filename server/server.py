@@ -2,6 +2,7 @@
 import Pyro4
 import pygame
 import threading
+import copy
 from random import randint, sample
 from char import Char
 from bomb import Bomb
@@ -10,6 +11,7 @@ from wall import Wall
 from modelChar import ModelChar
 from modelWall import ModelWall
 from modelBomb import ModelBomb
+from modelGift import ModelGift
 
 
 @Pyro4.expose
@@ -30,6 +32,7 @@ class Server(object):
         self.__gifts = {}
         self.__walls = self.__create_random_walls()
         self.__static_walls = []
+        self.__put_static_walls()
 
     # PRIVATE METHODS
     def __read_model_char(self):
@@ -47,20 +50,6 @@ class Server(object):
                 model_chars_return[model_char.get_id()] = model_char
         return model_chars_return
 
-    def __read_model_wall(self):
-        model_walls_return = {}
-        file_descriptor = open("modelsDescriptor/wallDesc.txt", 'r')
-        lines = file_descriptor.readlines()
-        file_descriptor.close()
-        columns = int(lines.pop(0).split()[1])
-        lines.pop(0)
-        for line in lines:
-            if len(line.split()) == columns:
-                path = line.split()[0]
-                model_wall = ModelWall(path)
-                model_walls_return[model_wall.get_id()] = model_wall
-        return model_walls_return
-
     def __read_model_bomb(self):
         model_bombs_return = {}
         file_descriptor = open("modelsDescriptor/bombDesc.txt", 'r')
@@ -76,7 +65,34 @@ class Server(object):
                 model_bombs_return[model_bomb.get_id()] = model_bomb
         return model_bombs_return
 
-    # TODO IMPLEMENTAR READMODELGIFT AGUARDANDO CLASSES
+    def __read_model_gift(self):
+        model_gifts_return = {}
+        file_descriptor = open("modelsDescriptor/giftDesc.txt", 'r')
+        lines = file_descriptor.readlines()
+        file_descriptor.close()
+        columns = int(lines.pop(0).split()[1])
+        lines.pop(0)
+        for line in lines:
+            if len(line.split()) == columns:
+                s_more_speed, s_more_n_bombs, s_more_power = map(int, line.split()[:-1])
+                path = line.split()[-1:][0]
+                model_gift = ModelGift(s_more_speed, s_more_n_bombs, s_more_power, path)
+                model_gifts_return[model_gift.get_id()] = model_gift
+        return model_gifts_return
+
+    def __read_model_wall(self):
+        model_walls_return = {}
+        file_descriptor = open("modelsDescriptor/wallDesc.txt", 'r')
+        lines = file_descriptor.readlines()
+        file_descriptor.close()
+        columns = int(lines.pop(0).split()[1])
+        lines.pop(0)
+        for line in lines:
+            if len(line.split()) == columns:
+                path = line.split()[0]
+                model_wall = ModelWall(path)
+                model_walls_return[model_wall.get_id()] = model_wall
+        return model_walls_return
 
     def __create_random_gift(self):
         id_model_gift = randint(0, len(self.__model_gift))
@@ -92,7 +108,7 @@ class Server(object):
         x = 1
         y = 1
         n = 0
-        n_walls = 45
+        n_walls = 25
         model_wall = next(iter(self.__model_wall.values()))
         while True:
             x = randint(1, 13)
@@ -101,7 +117,7 @@ class Server(object):
                 if [x, y] not in reserved_spaces:
                     n += 1
                     reserved_spaces.append([x, y])
-                    wall = Wall([x*Server.wall_factor, y*Server.wall_factor], 0, model_wall.get_id(), [55, 55], 255, self.__create_random_gift())
+                    wall = Wall(0, [x*Server.wall_factor, y*Server.wall_factor], model_wall.get_id(), [55, 55], 255, self.__create_random_gift())
                     random_walls_return[wall.get_id()] = wall
             if n == n_walls:
                 break
@@ -109,9 +125,9 @@ class Server(object):
 
     def __put_static_walls(self):
         model_static_wall = self.__model_wall[1]
-        for x in range(2, 13, 2):
-            for y in range(2, 7, 2):
-                wall = Wall([x*Server.wall_factor, y*Server.wall_factor], 0, model_static_wall.get_id(), [55, 55], 255, 0)
+        for x in list(range(2, 13, 2)):
+            for y in list(range(2, 7, 2)):
+                wall = Wall(0, [x*Server.wall_factor, y*Server.wall_factor], model_static_wall.get_id(), [55, 55], 255, 0)
                 self.__static_walls.append(wall)
 
     def __process_bomb_collision(self, bomb):
@@ -124,15 +140,15 @@ class Server(object):
         for id_char in id_chars_kill:
             del self.__chars[id_char]
 
-    def __detect_char_wall_collision(self, char):
+    def __detect_char_wall_collision(self, char, direction):
         #detecting in static walls
         for wall in self.__static_walls:
-            if char.check_collision(wall):
+            if char.check_collision_walk(wall, direction):
                 return True
 
         # detecting in dinamics walls
-        for wall in self.__walls:
-            if char.check_collision(wall):
+        for wall in self.__walls.values():
+            if char.check_collision_walk(wall, direction):
                 return True
         return False
 
@@ -196,6 +212,7 @@ class Server(object):
                     model_char.get_s_power_bomb_add())
         self.__chars[char.get_id()] = char
         self.__n_players += 1
+        return char.get_id()
 
     def put_bomb(self, id_char):
         if id_char in self.__chars:
@@ -209,18 +226,33 @@ class Server(object):
     def move(self, id_char, direction):
         if id_char in self.__chars:
             char = self.__chars[id_char]
-            if not self.__detect_char_wall_collision(char):
+            if not self.__detect_char_wall_collision(char, direction):
                 char.move(direction)
+            '''
+            if self.__detect_char_wall_collision(char):
+                if direction == 0:
+                    direction = 180
+                elif direction == 180:
+                    direction = 0
+                elif direction == 90:
+                    direction = 270
+                elif direction == 270:
+                    direction = 90
+
+                char.move(direction)
+            else:
+                char.move(direction)
+            '''
 
     def list_bombs(self):
         list_return = list()
-        for bomb in self.__bombs:
+        for bomb in self.__bombs.values():
             list_return.append([bomb.get_id_model(), bomb.get_position(), bomb.get_scale(), bomb.get_alpha()])
         return list_return
 
     def list_chars(self):
         list_return = list()
-        for char in self.__chars:
+        for char in self.__chars.values():
             list_return.append([char.get_id_model(), char.get_orientation(),
                                 char.get_position(), char.get_scale(),
                                 char.get_alpha(), char.get_nick()])
@@ -228,7 +260,7 @@ class Server(object):
 
     def list_walls(self):
         list_return = list()
-        for wall in self.__walls:
+        for wall in self.__walls.values():
             list_return.append([wall.get_id_model(), wall.get_position(), wall.get_scale(), wall.get_alpha()])
 
         for wall in self.__static_walls:
@@ -238,7 +270,7 @@ class Server(object):
 
     def list_gifts(self):
         list_return = list()
-        for gift in self.__gifts:
+        for gift in self.__gifts.values():
             list_return.append([gift.get_id_model(), gift.get_position(), gift.get_scale(), gift.get_alpha()])
         return list_return
 
@@ -258,22 +290,16 @@ class Server(object):
 def main():
     clock = pygame.time.Clock()
     server = Server()
-    server.get_model_chars()
-    server2 = Server()
     daemon = Pyro4.Daemon()
     uri = daemon.register(server)
-    uri2 = daemon.register(server2)
     ns = Pyro4.locateNS()
     ns.register("server.bombergame.putaria", uri)
-    ns.register("server.bombergame.sacanagem", uri2)
     t = threading.Thread(target=daemon.requestLoop)
     t.start()
     while True:
         if server.get_n_players():
             server.clock()
 
-        if server2.get_n_players():
-            server2.clock()
         clock.tick(30)  # 35 FPS
 
 

@@ -1,5 +1,5 @@
 # element.py
-
+import math
 
 class Element:
 
@@ -27,6 +27,10 @@ class Element:
         return self.__alpha
 
     def set_orientation(self, orientation):
+        if orientation == 90:
+            orientation = 270
+        elif orientation == 270:
+            orientation = 90
         self.__orientation = orientation
 
     def set_position(self, position):
@@ -53,20 +57,21 @@ class Element:
         x = [[0, 0], [0, 0]]
         y = [[0, 0], [0, 0]]
         x[0][0], y[0][0] = self.get_position()
-        x[0][0] *= 1.1
-        y[0][0] *= 1.1
+        x[0][0] *= 1.01
+        y[0][0] *= 1.01
         x[1][0], y[1][0] = element.get_position()
-        x[1][0] *= 1.1
-        y[1][0] *= 1.1
+        x[1][0] *= 1.01
+        y[1][0] *= 1.01
 
         x_scale1, y_scale1 = self.get_scale()
         x_scale2, y_scale2 = element.get_scale()
-        x[0][1] = x[0][0] + x_scale1 * 0.9
-        x[1][1] = x[1][0] + x_scale2 * 0.9
-        y[0][1] = y[0][0] + y_scale1 * 0.9
-        y[1][1] = y[1][0] + y_scale2 * 0.9
+        x[0][1] = x[0][0] + x_scale1 * 0.99
+        x[1][1] = x[1][0] + x_scale2 * 0.99
+        y[0][1] = y[0][0] + y_scale1 * 0.99
+        y[1][1] = y[1][0] + y_scale2 * 0.99
 
         if x[0][0] >= x[1][1] or x[0][1] <= x[1][0] or y[0][0] >= y[1][1] or y[0][1] <= y[1][0]:
             return False
 
         return True
+

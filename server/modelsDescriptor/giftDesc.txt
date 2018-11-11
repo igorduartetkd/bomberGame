@@ -1,1 +1,3 @@
-more_speed	more_n_bombs	more_power	path
+columns: 4
+s_more_speed	s_more_n_bombs	s_more_power	s_path
+10		0		0		img/gift1.png
