@@ -7,13 +7,16 @@ class Gift(Element):
 
     def __init__(self, orientation, position, id_model, scale, alpha, more_speed, more_n_bombs, more_power):
         super().__init__(orientation, position, id_model, scale, alpha)
-        id = Gift.id
+        self.__id = Gift.id
         Gift.id += 1
         self.__more_speed = more_speed
         self.__more_n_bombs = more_n_bombs
         self.__more_power = more_power
 
     # GETTERS AND SETTERS
+    def get_id(self):
+        return self.__id
+
     def get_more_speed(self):
         return self.__more_speed
 

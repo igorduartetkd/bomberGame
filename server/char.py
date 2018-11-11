@@ -56,7 +56,7 @@ class Char(Element):
     def set_power_bomb_add(self, power_bomb_add):
         self.__power_bomb_add = power_bomb_add
 
-    def set_n_bomb_implanted(self, n_bomb_implanted):
+    def __set_n_bomb_implanted(self, n_bomb_implanted):
         self.__n_bomb_implanted = n_bomb_implanted
 
     # PUBLIC METHODS
@@ -71,11 +71,11 @@ class Char(Element):
     def put_bomb(self):
         if self.get_n_bomb_implanted() >= self.get_n_bomb_max():
             return False
-        self.set_n_bomb_implanted(self.get_n_bomb_implanted() + 1)
+        self.__set_n_bomb_implanted(self.get_n_bomb_implanted() + 1)
         return True
 
     def bomb_exploded(self):
-        self.set_n_bomb_implanted(self.get_n_bomb_implanted() - 1)
+        self.__set_n_bomb_implanted(self.get_n_bomb_implanted() - 1)
 
     def check_collision_walk(self, element, direction):
         xd = int(math.cos(math.radians(direction)))
@@ -94,7 +94,7 @@ class Char(Element):
         x[0][1] = x[0][0] + x_scale1 + xd
         x[1][1] = x[1][0] + x_scale2 - 25
         y[0][1] = y[0][0] + y_scale1 + yd
-        y[1][1] = y[1][0] + y_scale2 - 18
+        y[1][1] = y[1][0] + y_scale2 - 20
 
         if x[0][0] >= x[1][1] or x[0][1] <= x[1][0] or y[0][0] >= y[1][1] or y[0][1] <= y[1][0]:
             return False

@@ -6,7 +6,7 @@ import os
 
 salas = {}
 n = 1
-with Pyro4.locateNS() as ns:
+with Pyro4.locateNS(host="192.168.0.4", port=7777) as ns:
     for sala, sala_uri in ns.list(prefix="server.").items():
         print(n, "- ", sala)
         salas[n] = (Pyro4.Proxy(sala_uri))
@@ -44,7 +44,7 @@ for id, path in list_model_fire:
 
 #my_nick = input("Nick name: ")
 my_nick = "teste"
-char = 2
+char = 3
 
 id_my_char = server.start_char(char, my_nick)
 print(id_my_char)
@@ -128,8 +128,8 @@ while True:
         rect = rect.move(position)
         screem.blit(img, rect)
 
-    for [model_wall, orientation, position, scale, alpha] in list_fires:
-        img = dic_img_model_fire[model_wall]
+    for [model_fire, orientation, position, scale, alpha] in list_fires:
+        img = dic_img_model_fire[model_fire]
         img = pygame.transform.scale(img, scale)
         rect = img.get_rect()
         rect = rect.move(position)

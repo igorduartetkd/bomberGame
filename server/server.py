@@ -136,7 +136,8 @@ class Server(object):
                 if [x, y] not in reserved_spaces:
                     n += 1
                     reserved_spaces.append([x, y])
-                    wall = Wall(0, [x*Server.wall_factor, y*Server.wall_factor], model_wall.get_id(), [55, 55], 255, self.__create_random_gift())
+                    wall = Wall(0, [x*Server.wall_factor, y*Server.wall_factor], model_wall.get_id(), [55, 55], 255,
+                                self.__create_random_gift())
                     random_walls_return[wall.get_id()] = wall
             if n == n_walls:
                 break
@@ -157,6 +158,21 @@ class Server(object):
 
         for id_char in id_chars_kill:
             self.exit(id_char)
+
+        walls_kill = []
+        for wall in self.__walls.values():
+            if fire.check_collision(wall):
+                walls_kill.append(wall)
+
+        for wall in walls_kill:
+            if wall.get_id_gift():
+                model_gift = self.__model_gift[wall.get_id_gift()]
+                gift = Gift(wall.get_orientation(), wall.get_position(), model_gift.get_id(), [54, 54], 155,
+                            model_gift.get_s_more_speed(), model_gift.get_s_more_n_bombs(),
+                            model_gift.get_s_more_power())
+                self.__gifts[gift.get_id()] = gift
+            del self.__walls[wall.get_id()]
+
 
     def __detect_char_wall_collision(self, char, direction):
         #detecting in static walls
@@ -186,8 +202,9 @@ class Server(object):
 
         for id_bomb in id_bombs_exploded:
             bomb = self.__bombs[id_bomb]
-            char = self.__chars[bomb.get_id_char()]
-            char.bomb_exploded()
+            if bomb.get_id_char() in self.__chars:
+                char = self.__chars[bomb.get_id_char()]
+                char.bomb_exploded()
             del self.__bombs[id_bomb]
 
     def __check_fires(self):
@@ -204,27 +221,17 @@ class Server(object):
         model_fire_middle = self.__model_fire[2]
         model_fire_end = self.__model_fire[3]
         x, y = bomb.get_position()
-
-        if x % 2:
+        center = False
+        if x % 2 and y % 2:
+            center = True
             fire = Fire(bomb.get_orientation(), [x, y], model_fire_base.get_id(),
                         [54, 54], 100, 30)
             self.__fires[fire.get_id()] = fire
-        '''
-        if bomb.get_power() == 1:
-            fire = Fire(0, [x+15+Server.wall_factor, y+15], model_fire_end.get_id(),
-                        [54, 54], 100, 30)
-            self.__fires[fire.get_id()] = fire
-            fire = Fire(90, [x+15 , y+15-Server.wall_factor], model_fire_end.get_id(),
-                        [54, 54], 100, 30)
-            self.__fires[fire.get_id()] = fire
-            fire = Fire(270, [x+15, y+15+Server.wall_factor], model_fire_end.get_id(),
-                        [54, 54], 100, 30)
-            self.__fires[fire.get_id()] = fire
-            fire = Fire(180, [x + 15 - Server.wall_factor, y + 15], model_fire_end.get_id(),
-                        [54, 54], 100, 30)
-            self.__fires[fire.get_id()] = fire
-        '''
-        for n in range(1, bomb.get_power()+1, 1):
+
+        start = 0
+        if center:
+            start = 1
+        for n in range(start, bomb.get_power()+1, 1):
             if n == bomb.get_power():
                 model = model_fire_end
             else:
@@ -296,8 +303,8 @@ class Server(object):
                     model_char.get_id(), [54, 54], 255,
                     nick, model_char.get_s_id_bomb_model(),
                     model_char.get_s_speed(),
-                    model_char.get_s_n_bomb_max(),
-                    model_char.get_s_power_bomb_add())
+                    n_bomb_max=model_char.get_s_n_bomb_max(),
+                    power_bomb_add=model_char.get_s_power_bomb_add())
         self.__chars[char.get_id()] = char
         self.__n_players += 1
         return char.get_id()
@@ -311,7 +318,8 @@ class Server(object):
                 y = round(y / Server.wall_factor) * Server.wall_factor
                 model_bomb = self.__model_bomb[char.get_id_bomb_model()]
                 bomb = Bomb(char.get_orientation(), [x, y], model_bomb.get_id(), [53, 53], 255,
-                            id_char, model_bomb.get_s_power(), model_bomb.get_s_timer())
+                            id_char, model_bomb.get_s_power() + char.get_power_bomb_add(),
+                            model_bomb.get_s_timer())
                 self.__bombs[bomb.get_id()] = bomb
 
     def move(self, id_char, direction):
@@ -367,6 +375,19 @@ class Server(object):
             fire.clock()
         self.__check_fires()
 
+        for char in self.__chars.values():
+            id_gift_remove = []
+            for gift in self.__gifts.values():
+                if gift.check_collision(char):
+                    char.set_speed(char.get_speed() + gift.get_more_speed())
+                    char.set_n_bomb_max(char.get_n_bomb_max() + gift.get_more_n_bombs())
+                    char.set_power_bomb_add(char.get_power_bomb_add() + gift.get_more_power())
+                    id_gift_remove.append(gift.get_id())
+
+            for id_gift in id_gift_remove:
+                del self.__gifts[id_gift]
+
+
     def exit(self, id_char):
         if id_char in self.__chars:
             self.__n_players -= 1
@@ -374,11 +395,13 @@ class Server(object):
 
 
 def main():
+    Pyro4.config.HOST = "192.168.0.4"
+    Pyro4.config.NS_PORT = 7777
     clock = pygame.time.Clock()
     server = Server()
     daemon = Pyro4.Daemon()
     uri = daemon.register(server)
-    ns = Pyro4.locateNS()
+    ns = Pyro4.locateNS(host="192.168.0.4", port=7777)
     ns.register("server.bombergame.putaria", uri)
     t = threading.Thread(target=daemon.requestLoop)
     t.start()

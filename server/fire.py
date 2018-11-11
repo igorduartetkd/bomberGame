@@ -59,9 +59,9 @@ class Fire(Element):
 
         x_scale1, y_scale1 = self.get_scale()
         x_scale2, y_scale2 = element.get_scale()
-        x[0][1] = x[0][0] + x_scale1 -20
+        x[0][1] = x[0][0] + x_scale1 -30
         x[1][1] = x[1][0] + x_scale2
-        y[0][1] = y[0][0] + y_scale1 -20
+        y[0][1] = y[0][0] + y_scale1 -30
         y[1][1] = y[1][0] + y_scale2
 
         if x[0][0] >= x[1][1] or x[0][1] <= x[1][0] or y[0][0] >= y[1][1] or y[0][1] <= y[1][0]:
