@@ -1,0 +1,5 @@
+columns 1
+path
+img/fire1.png
+img/fire2.png
+img/fire3.png

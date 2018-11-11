@@ -53,7 +53,7 @@ clock = pygame.time.Clock()
 
 screem = pygame.display.set_mode((800, 480))
 
-background = pygame.image.load("img/fundo1.jpg")
+background = pygame.image.load("img/fundo1.png")
 background = pygame.transform.scale(background, (800, 480))
 rect_background = background.get_rect()
 
