@@ -6,7 +6,7 @@ import os
 
 salas = {}
 n = 1
-with Pyro4.locateNS(host="192.168.0.4", port=7777) as ns:
+with Pyro4.locateNS(host="192.168.104.179", port=7777) as ns:
     for sala, sala_uri in ns.list(prefix="server.").items():
         print(n, "- ", sala)
         salas[n] = (Pyro4.Proxy(sala_uri))

@@ -395,13 +395,13 @@ class Server(object):
 
 
 def main():
-    Pyro4.config.HOST = "192.168.0.4"
+    Pyro4.config.HOST = "192.168.104.179"
     Pyro4.config.NS_PORT = 7777
     clock = pygame.time.Clock()
     server = Server()
     daemon = Pyro4.Daemon()
     uri = daemon.register(server)
-    ns = Pyro4.locateNS(host="192.168.0.4", port=7777)
+    ns = Pyro4.locateNS(host="192.168.104.179", port=7777)
     ns.register("server.bombergame.putaria", uri)
     t = threading.Thread(target=daemon.requestLoop)
     t.start()
