@@ -44,7 +44,7 @@ for id, path in list_model_fire:
 
 #my_nick = input("Nick name: ")
 my_nick = "teste"
-char = 3
+char = 1
 
 id_my_char = server.start_char(char, my_nick)
 print(id_my_char)

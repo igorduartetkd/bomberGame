@@ -1,3 +1,5 @@
 columns: 3
 power	timer	path
 1	90	img/bomb1.png
+2	60	img/bomb2.png
+2	60	img/bomb3.png

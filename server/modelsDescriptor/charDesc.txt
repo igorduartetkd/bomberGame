@@ -1,5 +1,5 @@
 collumns 5
 id_bomb_model	speed	n_bomb_max	power_bomb_add	path
-1		5	1		0		img/char1.png
+3		10	5		5		img/char1.png
 1		8	1		0		img/char2.png
 1		5	2		0		img/char3.png
