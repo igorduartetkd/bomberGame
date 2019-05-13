@@ -395,14 +395,16 @@ class Server(object):
 
 
 def main():
-    Pyro4.config.HOST = "192.168.104.179"
+    ipaddr = "192.168.102.134"
+    port = 7777
+    Pyro4.config.HOST = ipaddr
     Pyro4.config.NS_PORT = 7777
     clock = pygame.time.Clock()
     server = Server()
     daemon = Pyro4.Daemon()
     uri = daemon.register(server)
-    ns = Pyro4.locateNS(host="192.168.104.179", port=7777)
-    ns.register("server.bombergame.putaria", uri)
+    ns = Pyro4.locateNS(host=ipaddr, port=port)
+    ns.register("server.bombergame.sala1", uri)
     t = threading.Thread(target=daemon.requestLoop)
     t.start()
     while True:
