@@ -3,10 +3,12 @@ import Pyro4
 from pygame.locals import *
 import os
 
+ipaddr = "192.168.102.134"
+port = 7777
 
 salas = {}
 n = 1
-with Pyro4.locateNS(host="192.168.104.179", port=7777) as ns:
+with Pyro4.locateNS(host=ipaddr, port=port) as ns:
     for sala, sala_uri in ns.list(prefix="server.").items():
         print(n, "- ", sala)
         salas[n] = (Pyro4.Proxy(sala_uri))
